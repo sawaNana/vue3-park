@@ -1,26 +1,64 @@
 {
   "name": "vue3-park",
   "version": "1.0.0",
+  "private": true,
   "description": "This is my playground with Vue3!",
-  "main": "index.js",
+  "author": {
+    "name": "sawaNana"
+  },
   "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "lint": "vue-cli-service lint",
     "test": "npm run test"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/sawaNana/vue3-park.git"
+  "main": "index.js",
+  "dependencies": {
+    "core-js": "^3.6.5",
+    "vue": "^3.2.29"
   },
-  "keywords": [
-    "Vue.js",
-    "Vue3"
+  "devDependencies": {
+    "@vue/cli": "^4.5.15",
+    "@vue/cli-plugin-babel": "~4.5.0",
+    "@vue/cli-plugin-eslint": "~4.5.0",
+    "@vue/cli-service": "~4.5.0",
+    "@vue/compiler-sfc": "^3.0.0",
+    "babel-eslint": "^10.1.0",
+    "eslint": "^6.7.2",
+    "eslint-plugin-vue": "^7.0.0"
+  },
+  "eslintConfig": {
+    "root": true,
+    "env": {
+      "node": true
+    },
+    "extends": [
+      "plugin:vue/vue3-essential",
+      "eslint:recommended"
+    ],
+    "parserOptions": {
+      "parser": "babel-eslint"
+    },
+    "rules": {}
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
   ],
-  "author": "sawaNana",
-  "license": "MIT",
+  "_id": "vue3-park@1.0.0",
   "bugs": {
     "url": "https://github.com/sawaNana/vue3-park/issues"
   },
   "homepage": "https://github.com/sawaNana/vue3-park#readme",
-  "dependencies": {
-    "vue": "^3.2.29"
+  "keywords": [
+    "Vue.js",
+    "Vue3"
+  ],
+  "license": "MIT",
+  "readme": "ERROR: No README data found!",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sawaNana/vue3-park.git"
   }
 }
