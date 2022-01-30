@@ -1,0 +1,26 @@
+{
+  "name": "vue3-park",
+  "version": "1.0.0",
+  "description": "This is my playground with Vue3!",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm run test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sawaNana/vue3-park.git"
+  },
+  "keywords": [
+    "Vue.js",
+    "Vue3"
+  ],
+  "author": "sawaNana",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/sawaNana/vue3-park/issues"
+  },
+  "homepage": "https://github.com/sawaNana/vue3-park#readme",
+  "dependencies": {
+    "vue": "^3.2.29"
+  }
+}
