@@ -1,6 +1,6 @@
 <template>
   <div class="bg-teal-400 text-white h-full">
-    <NavigationBar />
+    <NavigationBar brandHref="/" />
     <div class="hello">
       <h1 class="text-7xl mt-10">Hello, world!</h1>
       <p>
