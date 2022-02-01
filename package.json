@@ -8,7 +8,7 @@
   },
   "scripts": {
     "serve": "vue-cli-service serve",
-    "tailwind-build": "tailwindcss -i ./src/tailwind.css -o ./src/tailwind.build.css",
+    "tailwind-build": "tailwindcss -i ./src/tailwind.css -o ./src/tailwind.build.css --watch",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
     "test": "npm run test"
