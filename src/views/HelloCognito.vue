@@ -13,7 +13,7 @@
     <div class="text-left m-10">
       <h2 class="text-2xl">Cognito User PoolのCognitoクライアントID</h2>
       <div class="w-96 py-5">
-        <input type="text" v-model="cognitoClientId" class="rounded-md w-full px-2 text-stone-700" placeholder="your-cognito-domain.com">
+        <input type="text" v-model="cognitoClientId" class="rounded-md w-full px-2 text-stone-700" placeholder="your cogunito client ID">
       </div>
     </div>
     <div class="text-left m-10">
@@ -42,9 +42,19 @@ export default {
       cognitoClientId: ''
     };
   },
+  mounted: function() {
+    if (localStorage.cognitoDomain) {
+      this.cognitoDomain = localStorage.cognitoDomain;
+    }
+    if (localStorage.cognitoClientId) {
+      this.cognitoClientId = localStorage.cognitoClientId;
+    }
+  },
   methods: {
     showHostedSignInUI: function() {
-      const endpoint = `${this.cognitoDomain}/login`
+      localStorage.cognitoDomain = this.cognitoDomain;
+      localStorage.cognitoClientId = this.cognitoClientId;
+      const endpoint = `${this.cognitoDomain}/login`;
       const params = new URLSearchParams({
         response_type: 'code',
         client_id: this.cognitoClientId,
