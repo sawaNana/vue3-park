@@ -39,7 +39,8 @@ export default {
   data: function(){
     return {
       cognitoDomain: '',
-      cognitoClientId: ''
+      cognitoClientId: '',
+      authCode: ''
     };
   },
   mounted: function() {
@@ -48,6 +49,12 @@ export default {
     }
     if (localStorage.cognitoClientId) {
       this.cognitoClientId = localStorage.cognitoClientId;
+    }
+    const url = new URL(location.href);
+    const code = url.searchParams.get('code')
+    if(code) {
+      this.authCode = code;
+      this.getAuthToken();
     }
   },
   methods: {
@@ -62,6 +69,32 @@ export default {
         scope: 'openid'
       });
       location.href = `${endpoint}?${params.toString()}`;
+    },
+    getAuthToken: function() {
+      const endpoint = `${this.cognitoDomain}/oauth2/token`;
+      const requestData = new URLSearchParams();
+      requestData.append('grant_type',   'authorization_code');
+      requestData.append('client_id',     this.cognitoClientId);
+      requestData.append('redirect_uri', 'http://localhost:8080/hello-cognito');
+      requestData.append('code',          this.authCode);
+      //const requestData = `grant_type=authorization_code&client_id=${this.cognitoClientId}&scope=openid&redirect_uri=http://localhost:8080/hello-cognito&code=${this.authCode}`;
+      fetch(endpoint, {
+          method: 'POST',
+          cache:  'no-cache',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: requestData
+        })
+        .then(function(response) {
+          return response.json();
+        })
+        .then(function(json) {
+          console.log(json);
+        })
+        .catch(function(error) {
+          console.log(error);
+        });
     }
   }
 }
