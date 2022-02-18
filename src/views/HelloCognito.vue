@@ -13,8 +13,12 @@
     <div class="text-left m-10">
       <h2 class="text-2xl">Cognito User PoolのCognitoクライアントID</h2>
       <div class="w-96 py-5">
-        <input type="text" v-model="cognitoClientId" class="rounded-md w-full px-2 text-stone-700" placeholder="your cogunito client ID">
+        <input type="text" v-model="cognitoClientId" class="rounded-md w-full px-2 text-stone-700" placeholder="your cognito client ID">
       </div>
+    </div>
+    <div class="text-left m-10">
+      <h2 class="text-2xl">現在のユーザー情報</h2>
+      <pre>{{ JSON.stringify(user, null, "  ")}}</pre>
     </div>
     <div class="text-left m-10">
       <h2 class="text-2xl">CognitoがホストしてくれるUIでのログイン</h2>
@@ -30,7 +34,7 @@
 </template>
 
 <script>
-import NavigationBar from '../components/NavigationBar.vue'
+import NavigationBar from '../components/NavigationBar.vue';
 export default {
   name: 'HelloCognito',
   components: {
@@ -40,7 +44,10 @@ export default {
     return {
       cognitoDomain: '',
       cognitoClientId: '',
-      authCode: ''
+      accessToken: '',
+      idToken: '',
+      refreshToken: '',
+      user: {}
     };
   },
   mounted: function() {
@@ -50,12 +57,15 @@ export default {
     if (localStorage.cognitoClientId) {
       this.cognitoClientId = localStorage.cognitoClientId;
     }
+    if (localStorage.accessToken) {
+      this.accessToken = localStorage.accessToken;
+    }
     const url = new URL(location.href);
     const code = url.searchParams.get('code')
     if(code) {
-      this.authCode = code;
-      this.getAuthToken();
+      this.getAuthToken(code);
     }
+    this.updateUser();
   },
   methods: {
     showHostedSignInUI: function() {
@@ -70,14 +80,13 @@ export default {
       });
       location.href = `${endpoint}?${params.toString()}`;
     },
-    getAuthToken: function() {
+    getAuthToken: function(authCode) {
       const endpoint = `${this.cognitoDomain}/oauth2/token`;
       const requestData = new URLSearchParams();
       requestData.append('grant_type',   'authorization_code');
       requestData.append('client_id',     this.cognitoClientId);
       requestData.append('redirect_uri', 'http://localhost:8080/hello-cognito');
-      requestData.append('code',          this.authCode);
-      //const requestData = `grant_type=authorization_code&client_id=${this.cognitoClientId}&scope=openid&redirect_uri=http://localhost:8080/hello-cognito&code=${this.authCode}`;
+      requestData.append('code',          authCode);
       fetch(endpoint, {
           method: 'POST',
           cache:  'no-cache',
@@ -86,15 +95,50 @@ export default {
           },
           body: requestData
         })
-        .then(function(response) {
+        .then((response) => {
           return response.json();
         })
-        .then(function(json) {
+        .then((json) => {
+          if (json.error) {
+            console.log(json);
+            return;
+          }
           console.log(json);
+          this.accessToken  = json.access_token
+          this.idToken      = json.id_token
+          this.refreshToken = json.refresh_token
+        })
+        .then(()=> {
+          localStorage.accessToken = this.accessToken;
+          localStorage.idToken = this.idToken;
+          localStorage.refreshToken = this.refreshToken;
         })
         .catch(function(error) {
           console.log(error);
         });
+    },
+    updateUser: function() {
+      if (!this.accessToken) {
+        this.user = {};
+        return;
+      }
+      const endpoint = `${this.cognitoDomain}/oauth2/userInfo`;
+      fetch(endpoint, {
+        headers: {
+          'Authorization': `Bearer ${this.accessToken}`
+        }
+      }).then((response) => {
+        console.log(response);
+        return response.json()
+      }).then((userData) => {
+        this.user = userData;
+        console.log(userData);
+      }).catch((error) => {
+        this.accessToken = '';
+        localStorage.accessToken = '';
+        this.user = {};
+        console.log(error);
+      });
     }
   }
 }
