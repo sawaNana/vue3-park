@@ -4,21 +4,25 @@
     <div>
       <h1 class="text-left text-7xl m-10">AWS Cognitoでログインを試す</h1>
     </div>
-    <div class="text-left m-10">
-      <h2 class="text-2xl">Cognito User PoolのCognitoドメイン</h2>
-      <div class="w-96 py-5">
-        <input type="text" v-model="cognitoDomain" class="rounded-md w-full px-2 text-stone-700" placeholder="your-cognito-domain.com">
+    <div class="flex">
+      <div class="">
+        <div class="text-left m-10">
+          <h2 class="text-2xl">Cognito User PoolのCognitoドメイン</h2>
+          <div class="w-96 py-5">
+            <input type="text" v-model="cognitoDomain" class="rounded-md w-full px-2 text-stone-700" placeholder="your-cognito-domain.com">
+          </div>
+        </div>
+        <div class="text-left m-10">
+          <h2 class="text-2xl">Cognito User PoolのCognitoクライアントID</h2>
+          <div class="w-96 py-5">
+            <input type="text" v-model="cognitoClientId" class="rounded-md w-full px-2 text-stone-700" placeholder="your cognito client ID">
+          </div>
+        </div>
       </div>
-    </div>
-    <div class="text-left m-10">
-      <h2 class="text-2xl">Cognito User PoolのCognitoクライアントID</h2>
-      <div class="w-96 py-5">
-        <input type="text" v-model="cognitoClientId" class="rounded-md w-full px-2 text-stone-700" placeholder="your cognito client ID">
+      <div class="text-left m-10">
+        <h2 class="text-2xl">現在のユーザー情報</h2>
+        <pre class="bg-amber-200 whitespace-pre-wrap rounded-md text-orange-800 p-2">{{ JSON.stringify(user, null, "  ")}}</pre>
       </div>
-    </div>
-    <div class="text-left m-10">
-      <h2 class="text-2xl">現在のユーザー情報</h2>
-      <pre>{{ JSON.stringify(user, null, "  ")}}</pre>
     </div>
     <div class="text-left m-10">
       <h2 class="text-2xl">CognitoがホストしてくれるUIでのログイン</h2>
@@ -63,9 +67,11 @@ export default {
     const url = new URL(location.href);
     const code = url.searchParams.get('code')
     if(code) {
-      this.getAuthToken(code);
+      this.getAuthToken(code)
+          .then(() => { this.updateUser(); });
+    } else {
+      this.updateUser();
     }
-    this.updateUser();
   },
   methods: {
     showHostedSignInUI: function() {
@@ -87,7 +93,7 @@ export default {
       requestData.append('client_id',     this.cognitoClientId);
       requestData.append('redirect_uri', 'http://localhost:8080/hello-cognito');
       requestData.append('code',          authCode);
-      fetch(endpoint, {
+      return fetch(endpoint, {
           method: 'POST',
           cache:  'no-cache',
           headers: {
@@ -131,6 +137,9 @@ export default {
         console.log(response);
         return response.json()
       }).then((userData) => {
+        if (userData.error) {
+          throw userData.error
+        }
         this.user = userData;
         console.log(userData);
       }).catch((error) => {
