@@ -39,6 +39,7 @@
 
 <script>
 import NavigationBar from '../components/NavigationBar.vue';
+import CognitoHostedUIAuth from '../libs/CognitoHostedUIAuth.js';
 export default {
   name: 'HelloCognito',
   components: {
@@ -51,7 +52,8 @@ export default {
       accessToken: '',
       idToken: '',
       refreshToken: '',
-      user: {}
+      user: {},
+      hostedUIAuth: null
     };
   },
   mounted: function() {
@@ -64,91 +66,21 @@ export default {
     if (localStorage.accessToken) {
       this.accessToken = localStorage.accessToken;
     }
+    this.hostedUIAuth = new CognitoHostedUIAuth(this.cognitoDomain, this.cognitoClientId, this.accessToken);
     const url = new URL(location.href);
     const code = url.searchParams.get('code')
-    if(code) {
-      this.getAuthToken(code)
-          .then(() => { this.updateUser(); });
-    } else {
-      this.updateUser();
-    }
+    this.hostedUIAuth.update(code)
+      .then(()=> {
+        localStorage.accessToken = this.hostedUIAuth.getAccessToken();
+      })
+      .then(() => {
+        this.user = this.hostedUIAuth.getUser();
+      });
   },
   methods: {
     showHostedSignInUI: function() {
-      localStorage.cognitoDomain = this.cognitoDomain;
-      localStorage.cognitoClientId = this.cognitoClientId;
-      const endpoint = `${this.cognitoDomain}/login`;
-      const params = new URLSearchParams({
-        response_type: 'code',
-        client_id: this.cognitoClientId,
-        redirect_uri: 'http://localhost:8080/hello-cognito',
-        scope: 'openid'
-      });
-      location.href = `${endpoint}?${params.toString()}`;
+      this.hostedUIAuth.showLoginUI();
     },
-    getAuthToken: function(authCode) {
-      const endpoint = `${this.cognitoDomain}/oauth2/token`;
-      const requestData = new URLSearchParams();
-      requestData.append('grant_type',   'authorization_code');
-      requestData.append('client_id',     this.cognitoClientId);
-      requestData.append('redirect_uri', 'http://localhost:8080/hello-cognito');
-      requestData.append('code',          authCode);
-      return fetch(endpoint, {
-          method: 'POST',
-          cache:  'no-cache',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-          },
-          body: requestData
-        })
-        .then((response) => {
-          return response.json();
-        })
-        .then((json) => {
-          if (json.error) {
-            console.log(json);
-            return;
-          }
-          console.log(json);
-          this.accessToken  = json.access_token
-          this.idToken      = json.id_token
-          this.refreshToken = json.refresh_token
-        })
-        .then(()=> {
-          localStorage.accessToken = this.accessToken;
-          localStorage.idToken = this.idToken;
-          localStorage.refreshToken = this.refreshToken;
-        })
-        .catch(function(error) {
-          console.log(error);
-        });
-    },
-    updateUser: function() {
-      if (!this.accessToken) {
-        this.user = {};
-        return;
-      }
-      const endpoint = `${this.cognitoDomain}/oauth2/userInfo`;
-      fetch(endpoint, {
-        headers: {
-          'Authorization': `Bearer ${this.accessToken}`
-        }
-      }).then((response) => {
-        console.log(response);
-        return response.json()
-      }).then((userData) => {
-        if (userData.error) {
-          throw userData.error
-        }
-        this.user = userData;
-        console.log(userData);
-      }).catch((error) => {
-        this.accessToken = '';
-        localStorage.accessToken = '';
-        this.user = {};
-        console.log(error);
-      });
-    }
   }
 }
 </script>
