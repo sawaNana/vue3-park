@@ -1,9 +1,10 @@
 class CognitoHostedUIAuth {
-  constructor(cognitoDomain, cognitoClientId, accessToken) {
+  constructor(cognitoDomain, cognitoClientId, accessToken, refreshToken) {
     this.cognitoDomain = cognitoDomain;
     this.cognitoClientId = cognitoClientId;
     this.user = {};
     this.accessToken  = accessToken;
+    this.refreshToken = refreshToken;
   }
   showLoginUI() {
     const endpoint = `${this.cognitoDomain}/login`;
@@ -14,6 +15,41 @@ class CognitoHostedUIAuth {
       scope: 'openid'
     });
     location.href = `${endpoint}?${params.toString()}`;
+  }
+  showLogOutUI() {
+    const endpoint = `${this.cognitoDomain}/logout`;
+    const params = new URLSearchParams({
+      client_id: this.cognitoClientId,
+      logout_uri: 'http://localhost:8080/hello-cognito'
+    });
+    location.href = `${endpoint}?${params.toString()}`;
+  }
+  revokeTokens() {
+    const endpoint = `${this.cognitoDomain}/oauth2/revoke`;
+    const requestData = new URLSearchParams();
+    requestData.append('client_id', this.cognitoClientId);
+    requestData.append('token',     this.refreshToken);
+    return fetch(endpoint, {
+        method: 'POST',
+        cache:  'no-cache',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: requestData
+      })
+      .then((response) => {
+        return response.json();
+      })
+      .then((json) => {
+        if (json.error) {
+          console.log(json);
+          return;
+        }
+        console.log(json);
+      })
+      .catch(function(error) {
+        console.log(error);
+      });
   }
   update(authCode) {
     this.authCode = authCode;
@@ -48,6 +84,7 @@ class CognitoHostedUIAuth {
         }
         console.log(json);
         this.accessToken  = json.access_token
+        this.refreshToken  = json.refresh_token
       })
       .catch(function(error) {
         console.log(error);
@@ -73,6 +110,7 @@ class CognitoHostedUIAuth {
       this.user = userData;
     }).catch((error) => {
       this.accessToken = '';
+      this.refreshToken = '';
       this.user = {};
       console.log(error);
     });
@@ -82,6 +120,9 @@ class CognitoHostedUIAuth {
   }
   getAccessToken() {
     return this.accessToken;
+  }
+  getRefreshToken() {
+    return this.refreshToken;
   }
 }
 export default CognitoHostedUIAuth;

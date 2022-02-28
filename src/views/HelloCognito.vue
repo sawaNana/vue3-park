@@ -27,10 +27,15 @@
     <div class="text-left m-10">
       <h2 class="text-2xl">CognitoがホストしてくれるUIでのログイン</h2>
       <div class="w-96 py-5">
-        <button tyepe="button" id="cognit-hosted-signin"
+        <button v-if="!accessToken" tyepe="button" id="cognit-hosted-signin"
           v-on:click="showHostedSignInUI" 
           class="w-24 bg-pink-500 rounded-md px-3 py-2 border-solid border-shite hover:bg-pink-400">
           Sign in
+        </button>
+        <button v-else tyepe="button" id="cognit-hosted-signout"
+          v-on:click="showHostedSignOutUI" 
+          class="w-24 bg-fuchsia-700 rounded-md px-3 py-2 border-solid border-shite hover:bg-fuchsia-600">
+          Sign out
         </button>
       </div>
     </div>
@@ -66,12 +71,20 @@ export default {
     if (localStorage.accessToken) {
       this.accessToken = localStorage.accessToken;
     }
-    this.hostedUIAuth = new CognitoHostedUIAuth(this.cognitoDomain, this.cognitoClientId, this.accessToken);
+    if (localStorage.refreshToken) {
+      this.refreshToken = localStorage.refreshToken;
+    }
+    this.hostedUIAuth = new CognitoHostedUIAuth(
+      this.cognitoDomain, this.cognitoClientId, this.accessToken, this.refreshToken
+    );
     const url = new URL(location.href);
     const code = url.searchParams.get('code')
     this.hostedUIAuth.update(code)
       .then(()=> {
         localStorage.accessToken = this.hostedUIAuth.getAccessToken();
+        localStorage.refreshToken = this.hostedUIAuth.getRefreshToken();
+        this.accessToken = localStorage.accessToken;
+        this.refreshToken = localStorage.refreshToken;
       })
       .then(() => {
         this.user = this.hostedUIAuth.getUser();
@@ -81,6 +94,12 @@ export default {
     showHostedSignInUI: function() {
       this.hostedUIAuth.showLoginUI();
     },
+    showHostedSignOutUI: function() {
+      this.hostedUIAuth.revokeTokens()
+        .then(() => {
+          this.hostedUIAuth.showLogOutUI();
+        });
+    }
   }
 }
 </script>
